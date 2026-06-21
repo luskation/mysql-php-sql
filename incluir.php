@@ -1,12 +1,12 @@
 <?php
   include("./config.php");
-  $con = mysqli_connect($host, $login, $senha, $bd);
+  $con = mysqli_connect($host, $usuario, $senha, $db_name);
 
   // Captura os dados enviados pelo formulário
   $nome_pet = $_POST["nome_pet"];
   $especie = $_POST["especie"];
   $raca = $_POST["raca"];
-  $data_nasc = empty($_POST["data_nascimento"]) ? "NULL" : "'".$POST["data_nascimento"]."'";
+  $data_nasc = empty($_POST["data_nascimento"]) ? "NULL" : "'".$_POST["data_nascimento"]."'";
   $cpf = $_POST["cpf"];
 
   if(isset($_POST["idPet"])){

@@ -2,57 +2,63 @@
 header("Content-Type: text/html; charset=iso-8859-1", true);
 ?>
 <html>
-<head><title>PetCare</title></head>
+<head><title>Tutores</title></head>
 <body>
-<center><h3>PetCare - Gerenciamento de Pets</h3></center>
-<form name="form1" method="POST" action="form_incluir.php">
-<table border="0" align="center" width="70%">
+<center><h3>Gerenciamento de Tutores</h3></center>
+
+<table border="0" align="center" width="95%">
 <?php
 include("./config.php");
-$con = mysqli_connect($host, $login, $senha, $bd);
-// Consulta unindo Pet com Tutor para mostrar o nome do dono na listagem
-$sql = "SELECT P.idPet, P.nome_pet, P.especie, P.raca, T.nome_tutor FROM Pet P INNER JOIN Tutor T ON P.cpf = T.cpf ORDER BY P.nome_pet";
-$tabela = mysqli_query($con, $sql);
 
-if(mysqli_num_rows($tabela) == 0){
+// Seleção buscando a nova coluna telefone
+$sql = "SELECT cpf, nome_tutor, telefone, logradouro, numero, bairro, cidade, estado, cep FROM Tutor ORDER BY nome_tutor";
+$resultado = $db->query($sql);
+$dados = $resultado->fetchAll(PDO::FETCH_ASSOC);
+
+if(count($dados) == 0){
 ?>
-  <tr><td align="center">Não há nenhum pet cadastrado.</td></tr>
-  <tr><td align="center"><input type="submit" value="Incluir Pet"></td></tr>
+  <tr><td align="center">Nenhum tutor cadastrado.</td></tr>
+  <tr><td align="center"><input type="button" value="Incluir Tutor" onclick="location.href='form_incluir.php'"></td></tr>
 <?php
 }else{
 ?>
   <tr bgcolor="grey">
-    <td width="25%">Nome do Pet</td>
-    <td width="20%">Espécie</td>
-    <td width="20%">Raça</td>
-    <td width="20%">Tutor (Dono)</td>
-    <td width="15%">Ações</td>
+    <td width="12%">CPF</td>
+    <td width="15%">Nome</td>
+    <td width="12%">Telefone</td>
+    <td width="18%">Logradouro</td>
+    <td width="6%">Nmr</td>
+    <td width="10%">Bairro</td>
+    <td width="12%">Cidade/UF</td>
+    <td width="8%">CEP</td>
+    <td width="12%">extras</td>
   </tr>
 <?php
-  while($dados = mysqli_fetch_row($tabela)){
+  foreach($dados as $tutor){
 ?>
   <tr>
-    <td><?php echo $dados[1]; ?></td>
-    <td><?php echo $dados[2]; ?></td>
-    <td><?php echo $dados[3]; ?></td>
-    <td><?php echo $dados[4]; ?></td>
+    <td><?php echo $tutor['cpf']; ?></td>
+    <td><?php echo $tutor['nome_tutor']; ?></td>
+    <td><?php echo !empty($tutor['telefone']) ? $tutor['telefone'] : '---'; ?></td>
+    <td><?php echo $tutor['logradouro']; ?></td>
+    <td><?php echo $tutor['numero']; ?></td>
+    <td><?php echo $tutor['bairro']; ?></td>
+    <td><?php echo $tutor['cidade']; ?>/<?php echo $tutor['estado']; ?></td>
+    <td><?php echo $tutor['cep']; ?></td>
     <td align="center">
-      <input type="button" value="Excluir" onclick="location.href='excluir.php?idPet=<?php echo $dados[0]; ?>'">
-      <input type="button" value="Editar" onclick="location.href='form_incluir.php?idPet=<?php echo $dados[0]; ?>'">
+      <input type="button" value="Excluir" onclick="if(confirm('Deseja realmente excluir este tutor?')) location.href='excluir.php?cpf=<?php echo $tutor['cpf']; ?>'">
+      <input type="button" value="Editar" onclick="location.href='form_incluir.php?cpf=<?php echo $tutor['cpf']; ?>'">
     </td>
   </tr>
 <?php
   }
 ?>
-<tr bgcolor="grey"><td colspan="5" height="5"></td></tr>
-<?php
-mysqli_close($con);
-?>
-<tr><td colspan="5" align="center"><input type="submit" value="Incluir Novo Pet"></td></tr>
+<tr bgcolor="grey"><td colspan="9" height="5"></td></tr>
+<tr><td colspan="9" align="center"><br><input type="button" value="Incluir Novo Tutor" onclick="location.href='form_incluir.php'"></td></tr>
 <?php
 }
 ?>
 </table>
-</form>
+
 </body>
 </html>

@@ -1,69 +1,120 @@
 <?php
 header("Content-Type: text/html; charset=iso-8859-1", true);
-?>
-<html>
-<head><title>Incluir/Editar um Pet</title></head>
-<body>
-<form name="form1" method="POST" action="incluir.php">
-<?php
 include("./config.php");
-$con = mysqli_connect($host, $login, $senha, $bd);
 
-if(isset($_GET["idPet"])){ 
-?>
-  <center><h3>Editar Dados do Pet</h3></center>
-<?php
-  $sql = "SELECT * FROM Pet WHERE idPet=".$_GET['idPet'];
-  $result = mysqli_query($con, $sql);
-  $vetor = mysqli_fetch_array($result, MYSQLI_ASSOC);
-?>
-  <input type="hidden" name="idPet" value="<?php echo $_GET['idPet']; ?>">
-<?php
-}else{
-?>
-  <center><h3>Cadastrar Novo Pet</h3></center>
-<?php
+$titulo = "Incluir";
+$cpf = "";
+$nome_tutor = "";
+$telefone = "";
+$logradouro = "";
+$numero = "";
+$bairro = "";
+$cidade = "";
+$estado = "";
+$cep = "";
+
+if(isset($_GET['cpf'])){
+  $titulo = "Editar";
+  $sql = "SELECT * FROM Tutor WHERE cpf=?";
+  $resultado = $db->prepare($sql);
+  $resultado->execute([$_GET['cpf']]);
+  $tutor = $resultado->fetch(PDO::FETCH_ASSOC);
+  
+  if($tutor){
+    $cpf = $tutor['cpf'];
+    $nome_tutor = $tutor['nome_tutor'];
+    $telefone = isset($tutor['telefone']) ? $tutor['telefone'] : '';
+    $logradouro = $tutor['logradouro'];
+    $numero = $tutor['numero'];
+    $bairro = $tutor['bairro'];
+    $cidade = $tutor['cidade'];
+    $estado = $tutor['estado'];
+    $cep = $tutor['cep'];
+  }
+}
+
+if($_SERVER['REQUEST_METHOD'] == 'POST'){
+  try {
+    $cpf = $_POST['cpf'];
+    $nome_tutor = $_POST['nome_tutor'];
+    $telefone = !empty($_POST['telefone']) ? $_POST['telefone'] : null;
+    $logradouro = $_POST['logradouro'];
+    $numero = $_POST['numero'];
+    $bairro = !empty($_POST['bairro']) ? $_POST['bairro'] : null;
+    
+    // Se vier vazio no POST, definimos como NULL para ativar o DEFAULT do MySQL
+    $cidade = !empty($_POST['cidade']) ? $_POST['cidade'] : null;
+    $estado = !empty($_POST['estado']) ? $_POST['estado'] : null;
+    $cep = $_POST['cep'];
+
+    if(isset($_GET['cpf'])){
+      // No UPDATE do MySQL usamos COALESCE para manter o DEFAULT caso venha nulo
+      $sql = "UPDATE Tutor SET nome_tutor=?, telefone=?, logradouro=?, numero=?, bairro=?, cidade=COALESCE(?, 'Lavras'), estado=COALESCE(?, 'MG'), cep=? WHERE cpf=?";
+      $stmt = $db->prepare($sql);
+      $stmt->execute([$nome_tutor, $telefone, $logradouro, $numero, $bairro, $cidade, $estado, $cep, $cpf]);
+    } else {
+      $sql = "INSERT INTO Tutor (cpf, nome_tutor, telefone, logradouro, numero, bairro, cidade, estado, cep) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+      $stmt = $db->prepare($sql);
+      $stmt->execute([$cpf, $nome_tutor, $telefone, $logradouro, $numero, $bairro, $cidade, $estado, $cep]);
+    }
+    
+    header("location: index.php");
+    exit();
+    
+  } catch(PDOException $e) {
+    echo "Erro ao salvar no banco MySQL: " . $e->getMessage();
+  }
 }
 ?>
-<table border="0" align="center" width="45%">
-<tr>
-    <td width="30%">Nome do Pet:</td>
-    <td><input type="text" name="nome_pet" value="<?php echo @$vetor['nome_pet']; ?>" maxlength="30" size="30"></td>
-</tr>
-<tr>
-    <td>Espécie:</td>
-    <td><input type="text" name="especie" value="<?php echo isset($vetor['especie']) ? $vetor['especie'] : 'Canino'; ?>" maxlength="20" size="20"></td>
-</tr>
-<tr>
-    <td>Raça:</td>
-    <td><input type="text" name="raca" value="<?php echo @$vetor['raca']; ?>" maxlength="30" size="30"></td>
-</tr>
-<tr>
-    <td>Data de Nasc.:</td>
-    <td><input type="date" name="data_Nasciment" value="<?php echo @$vetor['data_Nasciment']; ?>"></td>
-</tr>
-<tr>
-    <td>Tutor Responsável:</td>
-    <td>
-      <select name="cpf">
-        <option value="">Selecione um Tutor...</option>
-        <?php
-        // Busca os tutores para popular o combo-box do HTML
-        $res_tutores = mysqli_query($con, "SELECT cpf, nome_tutor FROM Tutor ORDER BY nome_tutor");
-        while($tutor = mysqli_fetch_array($res_tutores, MYSQLI_ASSOC)){
-            $selecionado = (@$vetor['cpf'] == $tutor['cpf']) ? "selected" : "";
-            echo "<option value='".$tutor['cpf']."' $selecionado>".$tutor['nome_tutor']." (".$tutor['cpf'].")</option>";
-        }
-        mysqli_close($con);
-        ?>
-      </select>
-    </td>
-</tr>
-<tr><td colspan="2" align="center"><br>
+<html>
+<head><title><?php echo $titulo; ?> Tutor</title></head>
+<body>
+<center><h3><?php echo $titulo; ?> Tutor</h3></center>
+<form method="POST">
+<table border="0" align="center" width="50%">
+  <tr>
+    <td>CPF:</td>
+    <td><input type="text" name="cpf" value="<?php echo $cpf; ?>" <?php if(isset($_GET['cpf'])) echo "readonly"; ?> required></td>
+  </tr>
+  <tr>
+    <td>Nome:</td>
+    <td><input type="text" name="nome_tutor" value="<?php echo $nome_tutor; ?>" required></td>
+  </tr>
+  <tr>
+    <td>Telefone (Unique):</td>
+    <td><input type="text" name="telefone" value="<?php echo $telefone; ?>"></td>
+  </tr>
+  <tr>
+    <td>Logradouro:</td>
+    <td><input type="text" name="logradouro" value="<?php echo $logradouro; ?>" required></td>
+  </tr>
+  <tr>
+    <td>Nmr:</td>
+    <td><input type="number" name="numero" value="<?php echo $numero; ?>" required></td>
+  </tr>
+  <tr>
+    <td>Bairro:</td>
+    <td><input type="text" name="bairro" value="<?php echo $bairro; ?>"></td>
+  </tr>
+  <tr>
+    <td>Cidade:</td>
+    <td><input type="text" name="cidade" value="<?php echo $cidade; ?>" placeholder="Padrão: Lavras"></td>
+  </tr>
+  <tr>
+    <td>Estado:</td>
+    <td><input type="text" name="estado" value="<?php echo $estado; ?>" placeholder="Padrão: MG" maxlength="2"></td>
+  </tr>
+  <tr>
+    <td>CEP:</td>
+    <td><input type="text" name="cep" value="<?php echo $cep; ?>" required></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <br>
+      <input type="submit" value="Salvar no Banco">
       <input type="button" value="Cancelar" onclick="location.href='index.php'">
-      <input type="submit" value="Gravar">
     </td>
-</tr>
+  </tr>
 </table>
 </form>
 </body>

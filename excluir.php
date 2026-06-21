@@ -1,8 +1,7 @@
 <?php
 include("./config.php");
-$con = mysqli_connect($host, $login, $senha, $bd);
-$sql = "DELETE FROM Pet WHERE idPet=".$_GET["idPet"];
-mysqli_query($con, $sql);
-mysqli_close($con);
+$sql = "DELETE FROM Tutor WHERE cpf=?";
+$stmt = $db->prepare($sql);
+$stmt->execute([$_GET["cpf"]]);
 header("location: ./index.php");
 ?>
