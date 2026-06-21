@@ -1,5 +1,6 @@
 <?php
-header("Content-Type: text/html; charset=iso-8859-1", true);
+// Alterado para UTF-8 para salvar dados acentuados corretamente
+header("Content-Type: text/html; charset=utf-8", true);
 include("./config.php");
 
 $titulo = "Incluir";
@@ -42,13 +43,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $numero = $_POST['numero'];
     $bairro = !empty($_POST['bairro']) ? $_POST['bairro'] : null;
     
-    // Se vier vazio no POST, definimos como NULL para ativar o DEFAULT do MySQL
+    // Se vier vazio, o MySQL assume o DEFAULT configurado na tabela ('Lavras' / 'MG')
     $cidade = !empty($_POST['cidade']) ? $_POST['cidade'] : null;
     $estado = !empty($_POST['estado']) ? $_POST['estado'] : null;
     $cep = $_POST['cep'];
 
     if(isset($_GET['cpf'])){
-      // No UPDATE do MySQL usamos COALESCE para manter o DEFAULT caso venha nulo
       $sql = "UPDATE Tutor SET nome_tutor=?, telefone=?, logradouro=?, numero=?, bairro=?, cidade=COALESCE(?, 'Lavras'), estado=COALESCE(?, 'MG'), cep=? WHERE cpf=?";
       $stmt = $db->prepare($sql);
       $stmt->execute([$nome_tutor, $telefone, $logradouro, $numero, $bairro, $cidade, $estado, $cep, $cpf]);
@@ -62,51 +62,54 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     exit();
     
   } catch(PDOException $e) {
-    echo "Erro ao salvar no banco MySQL: " . $e->getMessage();
+    echo "<center><font color='red'><b>Erro ao salvar no banco MySQL:</b> " . $e->getMessage() . "</font></center>";
   }
 }
 ?>
 <html>
-<head><title><?php echo $titulo; ?> Tutor</title></head>
+<head>
+  <meta charset="utf-8">
+  <title><?php echo $titulo; ?> Tutor</title>
+</head>
 <body>
 <center><h3><?php echo $titulo; ?> Tutor</h3></center>
 <form method="POST">
 <table border="0" align="center" width="50%">
   <tr>
     <td>CPF:</td>
-    <td><input type="text" name="cpf" value="<?php echo $cpf; ?>" <?php if(isset($_GET['cpf'])) echo "readonly"; ?> required></td>
+    <td><input type="text" name="cpf" value="<?php echo htmlspecialchars($cpf); ?>" <?php if(isset($_GET['cpf'])) echo "readonly"; ?> required></td>
   </tr>
   <tr>
     <td>Nome:</td>
-    <td><input type="text" name="nome_tutor" value="<?php echo $nome_tutor; ?>" required></td>
+    <td><input type="text" name="nome_tutor" value="<?php echo htmlspecialchars($nome_tutor); ?>" required></td>
   </tr>
   <tr>
     <td>Telefone (Unique):</td>
-    <td><input type="text" name="telefone" value="<?php echo $telefone; ?>"></td>
+    <td><input type="text" name="telefone" value="<?php echo htmlspecialchars($telefone); ?>"></td>
   </tr>
   <tr>
     <td>Logradouro:</td>
-    <td><input type="text" name="logradouro" value="<?php echo $logradouro; ?>" required></td>
+    <td><input type="text" name="logradouro" value="<?php echo htmlspecialchars($logradouro); ?>" required></td>
   </tr>
   <tr>
     <td>Nmr:</td>
-    <td><input type="number" name="numero" value="<?php echo $numero; ?>" required></td>
+    <td><input type="number" name="numero" value="<?php echo htmlspecialchars($numero); ?>" required></td>
   </tr>
   <tr>
     <td>Bairro:</td>
-    <td><input type="text" name="bairro" value="<?php echo $bairro; ?>"></td>
+    <td><input type="text" name="bairro" value="<?php echo htmlspecialchars($bairro); ?>"></td>
   </tr>
   <tr>
     <td>Cidade:</td>
-    <td><input type="text" name="cidade" value="<?php echo $cidade; ?>" placeholder="Padrão: Lavras"></td>
+    <td><input type="text" name="cidade" value="<?php echo htmlspecialchars($cidade); ?>" placeholder="Padrão: Lavras"></td>
   </tr>
   <tr>
     <td>Estado:</td>
-    <td><input type="text" name="estado" value="<?php echo $estado; ?>" placeholder="Padrão: MG" maxlength="2"></td>
+    <td><input type="text" name="estado" value="<?php echo htmlspecialchars($estado); ?>" placeholder="Padrão: MG" maxlength="2"></td>
   </tr>
   <tr>
     <td>CEP:</td>
-    <td><input type="text" name="cep" value="<?php echo $cep; ?>" required></td>
+    <td><input type="text" name="cep" value="<?php echo htmlspecialchars($cep); ?>" required></td>
   </tr>
   <tr>
     <td colspan="2" align="center">
@@ -118,4 +121,4 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 </table>
 </form>
 </body>
-</html>
+</html> 
